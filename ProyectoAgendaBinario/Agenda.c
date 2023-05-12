@@ -77,6 +77,8 @@ int borrarPersona(contacto *agenda, int *cont, int *max) {
          }  //  Este código es un seguro para que la agenda no se quede con contactos negativos
     } else printf("Operacion cancelada.\n");
 
+    guardarAgendaBinario(max[0]);
+
     return max[0];
 }
 
@@ -154,8 +156,8 @@ int crearAgendaBinaria() {
     } else fclose(ficheroBinario);
 }
 
-int guardarAgendaBinario(int *max, contacto *agenda){
-
+int guardarAgendaBinario(int max){
+    contacto agenda[max];
     //  Abrimos el fichero:
     FILE *fichero = fopen(FICHERO, "wb");
     if (fichero == NULL) {
@@ -164,11 +166,7 @@ int guardarAgendaBinario(int *max, contacto *agenda){
     }
 
     //  Realizamos la operación de escritura en el fichero:
-    for (int i = 0; i < max[0]; ++i) {
-        fprintf(fichero, "%d; %s; %s; %s; %d; %d\n", i + 1, agenda[i].nombre, agenda[i].apellidos, agenda[i].telefono,
-                agenda[i].edad, agenda[i].tipoContacto);
-    }
-
+    fwrite(agenda, sizeof (contacto), max, FICHERO);
     printf("Fichero grabado correctamente\n");
 
     //  Cerramos el fichero:

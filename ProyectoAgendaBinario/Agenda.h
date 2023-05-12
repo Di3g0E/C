@@ -36,7 +36,7 @@ int leerAgenda();
 
 int crearAgendaBinaria();
 
-int guardarAgendaBinario(int *max, contacto *agenda);
+int guardarAgendaBinario(int max);
 
 int leerAgendaBinario();
 
