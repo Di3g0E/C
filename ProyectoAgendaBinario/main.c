@@ -36,11 +36,10 @@ int main() {
 
         switch (opcion) {
             case 1:
-                listaPersonas(agenda, max);
+                listaPersonas();
                 break;
             case 2:
-                nuevaPersona(agenda, cont, max);
-                *cont += 1;
+                nuevaPersona();
                 break;
             case 3:
                 borrarPersona(agenda, cont, max);

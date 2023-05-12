@@ -6,41 +6,99 @@
 #include <stdio.h>
 #include "Agenda.h"
 
-void listaPersonas(contacto *agenda, int *max) {
-    printf("Agenda:\n");
-    for (int i = 0; i < max[0]; ++i) {
-        printf("%d; %s; %s; %s; %d; %d\n", i + 1, agenda[i].nombre, agenda[i].apellidos, agenda[i].telefono,
-               agenda[i].edad, agenda[i].tipoContacto);
+int numeroFilasFicheroB() {
+    //  Abrimos el fichero:
+    FILE *fb = fopen("agenda.dat", "rb");
+    if (fb == NULL) {
+        perror("Error al abrir el fichero.\n");
+        return -1;
+    }
+
+    //  Contamos el número de filas:
+    fseek(fb, 0, SEEK_END);
+    int longFichero = ftell(fb);
+    fseek(fb, 0, SEEK_SET);
+
+    int tamanoDatos = sizeof (contacto);
+    int numFilas = (longFichero / tamanoDatos) + 1;
+
+    //  Cerramos el fichero:
+    fclose(fb);
+
+    return numFilas;
+}
+
+int listaPersonas() {
+    int cant = numeroFilasFicheroB();
+    contacto agenda[cant];
+
+    //  Abrir fichero:
+    FILE *fb = fopen("agenda.dat", "wb");
+    if (fb == NULL) {
+        perror("Error al abrir el fichero.\n");
+        return -1;
+    }
+
+    //  Imprimir la línea del contacto:
+    while (!feof(fb)) {
+        fseek(fb, sizeof(contacto), SEEK_SET);
+        fread(&agenda, sizeof(contacto), cant, fb);
+
+        //  Se escribe este comando para no repetir la impresión de la última fila:
+        if (!feof(fb)) {
+            printf("Agenda:\n");
+            for (int i = 0; i < cant; ++i) {
+                printf("%d; %s; %s; %s; %d; %d\n", i + 1, agenda[i].nombre, agenda[i].apellidos, agenda[i].telefono,
+                       agenda[i].edad, agenda[i].tipoContacto);
+            };
+
+        }
+
+        //  Cerrar el fichero:
+        fclose(fb);
+
+        return 0;
     }
 }
 
-int nuevaPersona(contacto *agenda, int *cont, int *max) {
-
-    if (max[0] == 5) {
-        max[0]++;
-        agenda = realloc(agenda, max[0] * sizeof(contacto));
-    }   //  Si el espacio de almacenamiento está completo le reasigno una línea más de tipo 'contacto'
+int nuevaPersona() {
+    contacto nuevo;
 
     printf("Ecribe los datos del nuevo contacto:\n"
            " Nombre: ");
-    scanf("%s", &agenda[*cont].nombre);
+    scanf("%s", &nuevo.nombre);
 
     fflush(stdin);  // Este comando limpia el buffer y nos permite asignar los valores por teclados con menos errores
     printf("Apellidos: ");
-    scanf("%[^\n]", &agenda[*cont].apellidos);  //  "%[^\n]" le indica al 'scanf()' que guarde todos los datos que vayan entrando hasta el siguiente salto de línea
+    scanf("%[^\n]", &nuevo.apellidos);  //  "%[^\n]" le indica al 'scanf()' que guarde todos los datos que vayan entrando hasta el siguiente salto de línea
     fflush(stdin);
 
     printf("Telefono: ");
-    scanf("%s", &agenda[*cont].telefono);
+    scanf("%s", &nuevo.telefono);
 
     printf("Edad: ");
-    scanf("%d", &agenda[*cont].edad);
+    scanf("%d", &nuevo.edad);
 
     printf("Tipo de contacto (FAVORITO, CONOCIDO, TRABAJO): ");
-    scanf("%d", &agenda[*cont].tipoContacto);
+    scanf("%d", &nuevo.tipoContacto);
     fflush(stdin);
 
-    return max[0];
+    //  Una vez guardados los datos en la variable nuevo los guardamos en nuestro fichero binario.
+    //  Abrimos el fichero:
+    FILE *fb = fopen("agenda.dat", "ab");
+    if (fb == NULL) {
+        perror("Error de apertura del fichero.\n");
+        return -1;
+    }
+
+    //  Guardamos los datos al final del fichero:
+    int numNuevoContacto = numeroFilasFicheroB()+1;
+    fprintf(fb, "%d; %s; %s; %s; %d; %tipoCont\n", numNuevoContacto+1, nuevo.nombre, nuevo.apellidos, nuevo.telefono, nuevo.edad, nuevo.tipoContacto);
+
+    //  Cerramos el fichero:
+    fclose(fb);
+
+    return 0;
 }
 
 int borrarPersona(contacto *agenda, int *cont, int *max) {
@@ -74,10 +132,8 @@ int borrarPersona(contacto *agenda, int *cont, int *max) {
         while (sizeof(agenda) != 1) {
             realloc(agenda, max[0]*sizeof (contacto));
             break;
-         }  //  Este código es un seguro para que la agenda no se quede con contactos negativos
+        }  //  Este código es un seguro para que la agenda no se quede con contactos negativos
     } else printf("Operacion cancelada.\n");
-
-    guardarAgendaBinario(max[0]);
 
     return max[0];
 }
@@ -140,8 +196,8 @@ int leerAgenda() {
 
     //  Cerramos el fichero:
     if (fclose(fichero) != 0) {
-    perror("Error en clausura de fichero\n");
-    return -1;
+        perror("Error en clausura de fichero\n");
+        return -1;
     }
 }
 
@@ -156,8 +212,8 @@ int crearAgendaBinaria() {
     } else fclose(ficheroBinario);
 }
 
-int guardarAgendaBinario(int max){
-    contacto agenda[max];
+/*int guardarAgendaBinario(int *max, contacto *agenda){
+
     //  Abrimos el fichero:
     FILE *fichero = fopen(FICHERO, "wb");
     if (fichero == NULL) {
@@ -166,7 +222,11 @@ int guardarAgendaBinario(int max){
     }
 
     //  Realizamos la operación de escritura en el fichero:
-    fwrite(agenda, sizeof (contacto), max, FICHERO);
+    for (int i = 0; i < max[0]; ++i) {
+        fprintf(fichero, "%d; %s; %s; %s; %d; %d\n", i + 1, agenda[i].nombre, agenda[i].apellidos, agenda[i].telefono,
+                agenda[i].edad, agenda[i].tipoContacto);
+    }
+
     printf("Fichero grabado correctamente\n");
 
     //  Cerramos el fichero:
@@ -177,4 +237,4 @@ int guardarAgendaBinario(int max){
     return 0;
 }
 
-int leerAgendaBinario();
+int leerAgendaBinario();*/

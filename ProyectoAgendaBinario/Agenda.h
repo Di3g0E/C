@@ -24,9 +24,9 @@ typedef struct {
     enum tipoCont tipoContacto;
 } contacto; //  Creación del nuevo tipo de datos 'contacto'
 
-void listaPersonas(contacto *agenda, int *max);
+int listaPersonas();
 
-int nuevaPersona(contacto *agenda, int *cont, int *max);
+int nuevaPersona();
 
 int borrarPersona(contacto *agenda, int *cont, int *max);
 
